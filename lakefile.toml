@@ -1,0 +1,10 @@
+name = "type_theory"
+version = "0.1.0"
+defaultTargets = ["type_theory"]
+
+[[lean_lib]]
+name = "TypeTheory"
+
+[[lean_exe]]
+name = "type_theory"
+root = "Main"
