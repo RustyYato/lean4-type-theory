@@ -261,12 +261,55 @@ def DetReduction.app_arg
 | .cons a b c ab bc =>
   .cons (func.app a) (func.app b) (func.app c) (.app_arg _ _ _ func_val ab) (.app_arg _ _ _ func_val bc)
 
-def Term.subst_0_commutes_subst_1 (term: Term) :
-  Term.subst 0 a (Term.subst 1 b term) = Term.subst 0 b (Term.subst 0 a term) := by
-  sorry
+def Term.subst_commutes (term: Term) (ha: IsClosedAt a 0) (hb: IsClosedAt b 0) :
+  Term.subst n a (Term.subst (n + 1) b term) = Term.subst n b (Term.subst n a term) := by
+  induction term generalizing n a b with
+  | var index =>
+    simp [subst]
+    split
+    · subst index
+      simp
+      rw [if_neg]
+      rw [subst_closed _ _ _ hb]
+      simp [subst]
+      omega
+    by_cases h:index=n
+    · subst index
+      simp
+      rw [subst_closed _ _ _ ha]
+      simp [subst]
+    split
+    · rw [if_pos]
+      simp [subst]
+      simp [h]
+      omega
+    · rw [if_neg]
+      · simp [subst]
+        rw [if_neg, if_neg, if_neg]
+        any_goals omega
+      omega
+  | app func arg funcih argih =>
+    simp [subst]
+    rw [funcih, argih]
+    apply And.intro
+    all_goals trivial
+  | lam body ih =>
+    simp [Term.subst]
+    apply ih
+    rwa [weaken_closed]; assumption
+    rwa [weaken_closed]; assumption
 
-def Term.subst_0_commutes_subst_all_1 (term: Term) :
+
+def Term.subst_0_commutes_subst_all_1 (term: Term) (ha: IsClosedAt a 0) (h: ∀arg ∈ args, IsClosedAt arg 0) :
   Term.subst 0 a (Term.subst_all 1 term args) = Term.subst_all 0 (Term.subst 0 a term) args := by
-  sorry
+  induction args generalizing term with
+  | nil => rfl
+  | cons arg args ih =>
+    rw [subst_all, ih, subst_commutes]
+    rfl
+    assumption
+    simp [h]
+    intro arg harg
+    simp [h, harg]
 
 end LambdaCalc

@@ -408,7 +408,17 @@ def subst_all
       apply DetReductionStep.subst
       assumption
       rfl
-      conv => { lhs; rw [Term.subst_0_commutes_subst_all_1] }
+      conv => { lhs; rw [Term.subst_0_commutes_subst_all_1 _ (by
+        apply IsWellTyped.closed (ctx := [])
+        apply IsWellTyped.preservation
+        assumption
+        assumption) (by
+        intro arg harg
+        have ⟨i, h, _⟩ := List.getElem_of_mem harg
+        have := subst.getElem_IsWellTyped i h
+        subst arg
+        apply IsWellTyped.closed (ctx := [])
+        assumption)] }
       show DetHeredHalts (Term.subst_all 0 body (arg_val::args)) _
       apply body_ih
       assumption
