@@ -375,7 +375,7 @@ def subst_all
   (term: Term) (args: List Term) (wt: IsWellTyped ctx term ty)
   (subst: DetHeredHalts.SubstAll ctx args) :
   DetHeredHalts (term.subst_all 0 args) (IsWellTyped.subst_all term wt args subst.IsWellTyped) := by
-  induction term generalizing ctx ty with
+  induction term generalizing ctx ty args with
   | var index =>
     conv => { lhs; rw [subst_all_var (subst := subst) (wt :=  wt)] }
     cases wt with
@@ -386,7 +386,7 @@ def subst_all
     conv => { lhs; rw [subst_all_app (subst := subst) (wt :=  wt)] }
     cases wt with
     | app  _ _ _ arg_ty _ func_wt arg_wt =>
-    apply (func_ih (ty := LamType.func _ _) _ _).right
+    apply (func_ih (ty := LamType.func _ _) _ _ _).right
     apply arg_ih
     repeat assumption
   | lam body body_ih =>
@@ -399,7 +399,24 @@ def subst_all
       apply DetReduction.nil
     · intro arg arg_wt h
       conv => { lhs; rw [subst_all_lam (wt := .lam _ _ _ _ wt) (subst := subst)] }
-      sorry
+      have ⟨arg_val, arg_val_spec, arg_red⟩ := h.Halts
+      refine (DetHeredHalts.reduce_to (term' := (Term.subst_all 1 body args).lam.app arg_val) ?_ ?_).mpr ?_
+      apply DetReduction.app_arg
+      apply Term.IsValue.lam
+      assumption
+      refine (DetHeredHalts.reduce (term' := Term.subst 0 arg_val (Term.subst_all 1 body args)) ?_ ?_).mpr ?_
+      apply DetReductionStep.subst
+      assumption
+      rfl
+      conv => { lhs; rw [Term.subst_0_commutes_subst_all_1] }
+      show DetHeredHalts (Term.subst_all 0 body (arg_val::args)) _
+      apply body_ih
+      assumption
+      apply SubstAll.cons
+      apply (DetHeredHalts.reduce_to (term' := arg_val) ?_ ?_).mp
+      assumption
+      assumption
+      assumption
 
 def of_well_typed (term: Term) (wt: IsWellTyped [] term ty) : DetHeredHalts term wt := by
   apply subst_all (ctx := []) (term := term) (args := [])

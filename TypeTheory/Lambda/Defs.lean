@@ -253,4 +253,20 @@ def Term.subst_all_closed (term: Term) (args: List Term) (h: term.IsClosedAt 0) 
     rwa [Term.subst_closed]
     assumption
 
+def DetReduction.app_arg
+  (func arg arg': Term) (func_val: func.IsValue) :
+  DetReduction arg arg' ->
+  DetReduction (func.app arg) (func.app arg')
+| .nil _ => .nil _
+| .cons a b c ab bc =>
+  .cons (func.app a) (func.app b) (func.app c) (.app_arg _ _ _ func_val ab) (.app_arg _ _ _ func_val bc)
+
+def Term.subst_0_commutes_subst_1 (term: Term) :
+  Term.subst 0 a (Term.subst 1 b term) = Term.subst 0 b (Term.subst 0 a term) := by
+  sorry
+
+def Term.subst_0_commutes_subst_all_1 (term: Term) :
+  Term.subst 0 a (Term.subst_all 1 term args) = Term.subst_all 0 (Term.subst 0 a term) args := by
+  sorry
+
 end LambdaCalc
