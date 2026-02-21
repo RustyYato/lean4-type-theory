@@ -270,6 +270,11 @@ inductive SubstAll : List LamType -> List Term -> Prop where
   SubstAll ctx terms ->
   SubstAll (ty::ctx) (term::terms)
 
+def SubstAll.IsWellTyped (h: SubstAll ctx args): IsWellTyped.SubstAll ctx args := by
+  induction h with
+  | nil => apply IsWellTyped.SubstAll.nil
+  | cons => apply IsWellTyped.SubstAll.cons <;> assumption
+
 def subst_all_length_eq (subst: DetHeredHalts.SubstAll ctx args) : ctx.length = args.length := by
   induction subst with
   | nil => rfl
